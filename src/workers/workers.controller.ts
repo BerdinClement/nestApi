@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req
+} from "@nestjs/common";
 import { WorkersService } from './workers.service';
 import { Workers, Worker } from '../types';
 
@@ -14,7 +25,20 @@ export class WorkersController {
     }
   }
   @Get()
-  findAll(): Workers {
+  async findAll(@Req() request: Request): Promise<Workers> {
+    if (!request.headers['authorization']) {
+      throw new ForbiddenException(
+        'You are not allowed to access this resource',
+      );
+    }
+    const token = request.headers['authorization'].replace('Bearer ', '');
+    const res = await fetch(`http://localhost:9081/introspection/${token}`);
+    const data = await res.json();
+    if (data.name !== 'Clément Berdin') {
+      throw new ForbiddenException(
+        'You are not allowed to access this resource',
+      );
+    }
     return this.workersService.findAll();
   }
   @Patch()
