@@ -3,20 +3,22 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
-  Req
-} from "@nestjs/common";
+  UseGuards,
+} from '@nestjs/common';
 import { WorkersService } from './workers.service';
 import { Workers, Worker } from '../types';
+import { AuthGuard } from '../guards/auth.guard';
+import { AdminGuard } from '../guards/admin.guard';
 
 @Controller('workers')
 export class WorkersController {
   constructor(private readonly workersService: WorkersService) {}
   @Get(':id')
+  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string): Worker {
     try {
       return this.workersService.findOne(id);
@@ -25,23 +27,12 @@ export class WorkersController {
     }
   }
   @Get()
-  async findAll(@Req() request: Request): Promise<Workers> {
-    if (!request.headers['authorization']) {
-      throw new ForbiddenException(
-        'You are not allowed to access this resource',
-      );
-    }
-    const token = request.headers['authorization'].replace('Bearer ', '');
-    const res = await fetch(`http://localhost:9081/introspection/${token}`);
-    const data = await res.json();
-    if (data.name !== 'Clément Berdin') {
-      throw new ForbiddenException(
-        'You are not allowed to access this resource',
-      );
-    }
+  @UseGuards(AuthGuard)
+  async findAll(): Promise<Workers> {
     return this.workersService.findAll();
   }
   @Patch()
+  @UseGuards(AdminGuard)
   updateOne(@Body() worker: Worker): Worker {
     try {
       return this.workersService.updateOne(worker);
@@ -50,6 +41,7 @@ export class WorkersController {
     }
   }
   @Post()
+  @UseGuards(AdminGuard)
   createOne(@Body() worker: Worker): Worker {
     try {
       return this.workersService.createOne(worker);
@@ -58,6 +50,7 @@ export class WorkersController {
     }
   }
   @Delete(':id')
+  @UseGuards(AdminGuard)
   deleteOne(@Param('id') id: string): Worker {
     try {
       return this.workersService.deleteOne(id);
