@@ -7,53 +7,63 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { WorkersService } from './workers.service';
-import { Workers, Worker } from '../types';
+import { WorkerEntity, Workers } from '../types';
 import { AuthGuard } from '../guards/auth.guard';
-import { AdminGuard } from '../guards/admin.guard';
+import { Roles } from '../decorators/role.decorator';
+import { Role } from '../enums/role.enum';
+import { RolesGuard } from '../guards/role.guard';
 
 @Controller('workers')
 export class WorkersController {
   constructor(private readonly workersService: WorkersService) {}
   @Get(':id')
   @UseGuards(AuthGuard)
-  findOne(@Param('id') id: string): Worker {
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  findOne(@Param('id') id: string, @Req() request: any): WorkerEntity {
     try {
-      return this.workersService.findOne(id);
+      return this.workersService.findOne(id, request.roles);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
   @Get()
   @UseGuards(AuthGuard)
-  async findAll(): Promise<Workers> {
-    return this.workersService.findAll();
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  async findAll(@Req() request: any): Promise<Workers> {
+    return this.workersService.findAll(request.roles);
   }
   @Patch()
-  @UseGuards(AdminGuard)
-  updateOne(@Body() worker: Worker): Worker {
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  updateOne(@Body() worker: WorkerEntity, @Req() request: any): WorkerEntity {
     try {
-      return this.workersService.updateOne(worker);
+      return this.workersService.updateOne(worker,request.roles);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
   @Post()
-  @UseGuards(AdminGuard)
-  createOne(@Body() worker: Worker): Worker {
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  createOne(@Body() worker: WorkerEntity, @Req() request: any): WorkerEntity {
     try {
-      return this.workersService.createOne(worker);
+      return this.workersService.createOne(worker, request.roles);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
   @Delete(':id')
-  @UseGuards(AdminGuard)
-  deleteOne(@Param('id') id: string): Worker {
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  deleteOne(@Param('id') id: string, @Req() request: any): WorkerEntity {
     try {
-      return this.workersService.deleteOne(id);
+      return this.workersService.deleteOne(id, request.roles);
     } catch (error) {
       throw new BadRequestException(error.message);
     }

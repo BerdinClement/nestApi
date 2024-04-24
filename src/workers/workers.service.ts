@@ -1,23 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { FileManagementService } from '../file-management/file-management.service';
-import { Worker, Workers } from '../types';
+import { WorkerEntity, Workers } from '../types';
+import { instanceToPlain } from 'class-transformer';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class WorkersService {
   constructor(private readonly fileManagement: FileManagementService) {}
-  findAll(): Workers {
-    return this.fileManagement.readFileSync('./src/db/workers.json');
+  findAll(roles: Role[]): Workers {
+    const workers: Workers = this.fileManagement.readFileSync(
+      './src/db/workers.json',
+    );
+    const res = workers.map((worker) => {
+      return instanceToPlain(new WorkerEntity(worker), { groups: roles });
+    });
+    return res as Workers;
   }
-  findOne(id: string): Worker {
-    const workers = this.findAll();
+  findOne(id: string, roles: Role[]): WorkerEntity {
+    const workers = this.findAll(roles);
     const worker = workers.find((worker) => worker.employee_id === id);
     if (!worker) {
       throw new Error(`Worker with id ${id} not found`);
     }
     return worker;
   }
-  updateOne(worker: Worker): Worker {
-    const workers = this.findAll();
+  updateOne(worker: WorkerEntity, roles: Role[]): WorkerEntity {
+    const workers = this.findAll(roles);
     const id = worker.employee_id;
     const workerIndex = workers.findIndex(
       (worker) => worker.employee_id === id,
@@ -29,8 +37,8 @@ export class WorkersService {
     this.fileManagement.writeFileSync('./src/db/workers.json', workers);
     return worker;
   }
-  createOne(worker: Worker): Worker {
-    const workers = this.findAll();
+  createOne(worker: WorkerEntity, roles: Role[]): WorkerEntity {
+    const workers = this.findAll(roles);
     const id = worker.employee_id;
     const workerIndex = workers.findIndex(
       (worker) => worker.employee_id === id,
@@ -42,8 +50,8 @@ export class WorkersService {
     this.fileManagement.writeFileSync('./src/db/workers.json', workers);
     return worker;
   }
-  deleteOne(id: string): Worker {
-    const workers = this.findAll();
+  deleteOne(id: string, roles: Role[]): WorkerEntity {
+    const workers = this.findAll(roles);
     const workerIndex = workers.findIndex(
       (worker) => worker.employee_id === id,
     );

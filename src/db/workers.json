@@ -102,5 +102,18 @@
     "job_title": "Accountant, chartered",
     "contract_start_date": "2019-05-29",
     "contract_end_date": null
+  },
+  {
+    "employee_id": "WD40",
+    "first_name": "Samuel",
+    "last_name": "Caron",
+    "nationality": "France",
+    "department_id": 62,
+    "national_id_number": "086-60-0642",
+    "bank_account_number": "GB49CHAX52558280900341",
+    "monthly_salary": 4000000,
+    "job_title": "CEO de Seapalm",
+    "contract_start_date": "2020-04-18",
+    "contract_end_date": "2023-05-05"
   }
 ]
